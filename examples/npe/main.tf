@@ -103,7 +103,7 @@ module "test" {
         model = {
           format  = "OpenAI"
           name    = "gpt-35-turbo"
-          version = "0613"
+          version = "0125" # Updated to more recent version (Jan 2024)
         }
         scale = {
           type     = "Standard"
