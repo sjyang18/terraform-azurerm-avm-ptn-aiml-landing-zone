@@ -1,9 +1,9 @@
 {
   "image": "mcr.microsoft.com/azterraform:avm-latest",
   "updateRemoteUserUID": true,
-  "runArgs": ["--privileged"],
+  "runArgs": [],
   "mounts": [],
-  "onCreateCommand": "apk add --no-cache docker docker-cli docker-compose && rc-update add docker boot && service docker start || terraform || true",
+  "onCreateCommand": "terraform || true",
   "customizations": {
     "vscode": {
       "settings": {

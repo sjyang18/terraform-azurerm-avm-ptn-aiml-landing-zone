@@ -70,45 +70,31 @@ module "test" {
   # Basic configuration
   location            = var.location
   resource_group_name = "rg-aiml-lz-npe-${substr(module.naming.unique-seed, 0, 5)}"
-  name_prefix        = "engifrnpe"
-  enable_telemetry   = var.enable_telemetry
-
-  # Set to false to avoid platform landing zone dependencies
-  flag_platform_landing_zone = false
-
-  # Tags for cost tracking
-  tags = {
-    Environment = "npe"
-    CostProfile = "npe"
-    Example     = "npe"
-  }
-
   # Minimal VNet configuration - using address space compatible with AI Foundry
   vnet_definition = {
     name          = "vnet-aiml-npe"
-    address_space = "192.168.0.0/23"  # Required for AI Foundry capability host injection
+    address_space = "192.168.0.0/23" # Required for AI Foundry capability host injection
     dns_servers   = []
     subnets = {
       default = {
         enabled        = true
-        name          = "snet-default"
+        name           = "snet-default"
         address_prefix = "192.168.0.0/26"
       }
       private_endpoints = {
         enabled        = true
-        name          = "snet-pe"
+        name           = "snet-pe"
         address_prefix = "192.168.0.64/26"
       }
     }
   }
-
   # ENABLE AI FOUNDRY SERVICES (with cost-conscious settings)
   ai_foundry_definition = {
     create_byor      = true
-    purge_on_destroy = true  # Allows cleanup in testing
+    purge_on_destroy = true # Allows cleanup in testing
     ai_foundry = {
       create_ai_agent_service = true
-      sku                    = "S0"  # Use basic SKU
+      sku                     = "S0" # Use basic SKU
     }
     # Single AI model deployment (cost-conscious)
     ai_model_deployments = {
@@ -121,7 +107,7 @@ module "test" {
         }
         scale = {
           type     = "Standard"
-          capacity = 1  # Minimal capacity
+          capacity = 1 # Minimal capacity
         }
       }
     }
@@ -147,28 +133,28 @@ module "test" {
     ai_search_definition = {
       this = {
         enable_diagnostic_settings = false
-        sku                        = "basic"  # Use basic SKU
+        sku                        = "basic" # Use basic SKU
       }
     }
     cosmosdb_definition = {
       this = {
         enable_diagnostic_settings = false
         consistency_level          = "Session"
-        offer_type                = "Standard"
+        offer_type                 = "Standard"
       }
     }
     key_vault_definition = {
       this = {
         enable_diagnostic_settings = false
-        sku                        = "standard"  # Use standard SKU
+        sku                        = "standard" # Use standard SKU
       }
     }
     storage_account_definition = {
       this = {
         enable_diagnostic_settings = false
         shared_access_key_enabled  = true
-        account_tier              = "Standard"
-        account_replication_type  = "LRS"  # Cheapest replication
+        account_tier               = "Standard"
+        account_replication_type   = "LRS" # Cheapest replication
         endpoints = {
           blob = {
             type = "blob"
@@ -177,98 +163,93 @@ module "test" {
       }
     }
   }
-
+  # ENABLE API MANAGEMENT (with basic SKU)
+  apim_definition = {
+    deploy   = true
+    sku_name = "Developer_1" # Use developer SKU for cost savings
+  }
+  # ENABLE NETWORKING COMPONENTS
+  app_gateway_definition = {
+    deploy = false # Keep disabled as requested
+  }
+  bastion_definition = {
+    deploy = true
+    sku    = "Basic" # Use basic SKU
+  }
+  buildvm_definition = {
+    deploy = false # Keep disabled as requested
+  }
+  # ENABLE COMPUTE SERVICES (with minimal configurations)
+  container_app_environment_definition = {
+    deploy                     = true
+    enable_diagnostic_settings = false
+  }
+  enable_telemetry = var.enable_telemetry
+  firewall_definition = {
+    deploy = false # Keep disabled for cost savings
+  }
+  # Set to false to avoid platform landing zone dependencies
+  flag_platform_landing_zone = false
   # ENABLE GENAI SUPPORTING SERVICES (with cost-conscious settings)
   genai_app_configuration_definition = {
     deploy = true
-    sku    = "standard"  # Use standard SKU
+    sku    = "standard" # Use standard SKU
   }
-
   genai_container_registry_definition = {
-    deploy                        = true
-    enable_diagnostic_settings    = false
-    sku                          = "Basic"  # Use basic SKU instead of Premium
-    zone_redundancy_enabled      = false   # Disable for cost savings
+    deploy                     = true
+    enable_diagnostic_settings = false
+    sku                        = "Basic" # Use basic SKU instead of Premium
+    zone_redundancy_enabled    = false   # Disable for cost savings
   }
-
   genai_cosmosdb_definition = {
-    deploy                      = true
-    enable_diagnostic_settings  = false
+    deploy                     = true
+    enable_diagnostic_settings = false
     consistency_level          = "Session"
-    offer_type                = "Standard"
+    offer_type                 = "Standard"
   }
-
   genai_key_vault_definition = {
     deploy                        = true
     enable_diagnostic_settings    = false
-    sku                          = "standard"  # Use standard SKU
-    public_network_access_enabled = true      # For testing purposes
+    sku                           = "standard" # Use standard SKU
+    public_network_access_enabled = true       # For testing purposes
     network_acls = {
       bypass   = "AzureServices"
       ip_rules = ["${data.http.ip.response_body}/32"]
     }
   }
-
   genai_storage_account_definition = {
-    deploy                      = true
-    enable_diagnostic_settings  = false
+    deploy                     = true
+    enable_diagnostic_settings = false
     account_tier               = "Standard"
-    account_replication_type   = "LRS"  # Cheapest replication
+    account_replication_type   = "LRS" # Cheapest replication
   }
-
+  jumpvm_definition = {
+    deploy  = true
+    vm_size = "Standard_B2s" # Use smaller, cheaper VM size
+  }
   # ENABLE KNOWLEDGE SOURCES (with basic SKU)
   ks_ai_search_definition = {
-    deploy                      = true
-    enable_diagnostic_settings  = false
-    sku                        = "basic"  # Use basic SKU instead of standard
+    deploy                     = true
+    enable_diagnostic_settings = false
+    sku                        = "basic" # Use basic SKU instead of standard
   }
-
   ks_bing_grounding_definition = {
     deploy = true
   }
-
-  # ENABLE API MANAGEMENT (with basic SKU)
-  apim_definition = {
-    deploy    = true
-    sku_name  = "Developer_1"  # Use developer SKU for cost savings
-  }
-
-  # ENABLE NETWORKING COMPONENTS
-  app_gateway_definition = {
-    deploy = false  # Keep disabled as requested
-  }
-
-  bastion_definition = {
-    deploy = true
-    sku    = "Basic"  # Use basic SKU
-  }
-
-  firewall_definition = {
-    deploy = false  # Keep disabled for cost savings
-  }
-
-  # ENABLE COMPUTE SERVICES (with minimal configurations)
-  container_app_environment_definition = {
-    deploy                      = true
-    enable_diagnostic_settings  = false
-  }
-
-  buildvm_definition = {
-    deploy = false  # Keep disabled as requested
-  }
-
-  jumpvm_definition = {
-    deploy    = true
-    vm_size   = "Standard_B2s"  # Use smaller, cheaper VM size
-  }
-
   # KEEP MINIMAL MONITORING (Log Analytics Workspace is relatively cheap)
   law_definition = {
     deploy                             = true
-    sku                               = "PerGB2018"
-    retention_in_days                 = 30
-    internet_ingestion_enabled        = false
-    internet_query_enabled            = false
+    sku                                = "PerGB2018"
+    retention_in_days                  = 30
+    internet_ingestion_enabled         = false
+    internet_query_enabled             = false
     reservation_capacity_in_gb_per_day = null
+  }
+  name_prefix = "engifrnpe"
+  # Tags for cost tracking
+  tags = {
+    Environment = "npe"
+    CostProfile = "npe"
+    Example     = "npe"
   }
 }
